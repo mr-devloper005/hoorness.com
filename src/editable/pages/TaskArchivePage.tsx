@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ArrowUpRight, BriefcaseBusiness, ChevronDown, Download, FileText, Globe, MapPin, Phone, Search, Star, UserRound } from 'lucide-react'
+import { ArrowRight, ArrowUpRight, BookOpen, BriefcaseBusiness, ChevronDown, Download, FileText, Globe, MapPin, Phone, Search, Star, UserRound } from 'lucide-react'
 import { buildTaskMetadata } from '@/lib/seo'
 import { CATEGORY_OPTIONS, normalizeCategory } from '@/lib/categories'
 import { fetchPaginatedTaskPosts, buildPostUrl } from '@/lib/task-data'
@@ -93,6 +93,14 @@ export function TaskArchiveView({ task, posts, pagination, category, basePath }:
   const label = taskConfig?.label || task
   const categoryLabel = category === 'all' ? 'All categories' : CATEGORY_OPTIONS.find((item) => item.slug === category)?.name || category
 
+  if (task === 'article') {
+    return <ArticleArchiveView posts={posts} pagination={pagination} category={category} categoryLabel={categoryLabel} basePath={basePath} />
+  }
+
+  if (task === 'listing') {
+    return <ListingArchiveView posts={posts} pagination={pagination} category={category} categoryLabel={categoryLabel} basePath={basePath} />
+  }
+
   return (
     <EditableSiteShell>
       <main style={taskThemeStyle(task)} className="min-h-screen bg-[var(--tk-bg)] text-[var(--tk-text)]">
@@ -176,6 +184,216 @@ function ArchivePostCard({ post, task, basePath, index }: { post: SitePost; task
   return <ArticleArchiveCard post={post} href={href} index={index} />
 }
 
+function ArticleArchiveView({ posts, pagination, category, categoryLabel, basePath }: { posts: SitePost[]; pagination: SiteFeedPagination; category: string; categoryLabel: string; basePath: string }) {
+  const page = pagination.page || 1
+  const featured = posts[0]
+  const side = posts.slice(1, 4)
+  const rest = posts.slice(4)
+
+  return (
+    <EditableSiteShell>
+      <main style={taskThemeStyle('article')} className="min-h-screen bg-[#fffdf9] text-[#151a27]">
+        <header className="relative overflow-hidden border-b border-[#e8e1d8] bg-[#fff3e6]">
+          <div className="pointer-events-none absolute -left-32 top-10 h-72 w-72 rounded-full bg-[#f15a2b]/10 blur-3xl" />
+          <div className="pointer-events-none absolute -right-24 bottom-0 h-96 w-96 rounded-full bg-[#151a27]/10 blur-3xl" />
+          <div className="relative mx-auto grid max-w-[var(--editable-container)] gap-10 px-6 py-16 lg:grid-cols-[1fr_420px] lg:px-8 lg:py-20">
+            <div>
+              <p className="inline-flex items-center gap-2 rounded-full border border-[#f15a2b]/20 bg-white px-4 py-2 text-[11px] font-black uppercase tracking-[0.24em] text-[#f15a2b]">
+                <BookOpen className="h-4 w-4" /> Article library
+              </p>
+              <h1 className="mt-7 max-w-4xl text-balance text-[clamp(3.2rem,8vw,6.8rem)] font-black leading-[0.9] tracking-[-0.08em]">
+                Read useful ideas with room to breathe.
+              </h1>
+              <p className="mt-7 max-w-2xl text-lg font-medium leading-8 text-[#656c79]">
+                Browse fresh writing, practical guides, community posts, and business-friendly insights from Hoorness.
+              </p>
+              <form action={basePath} className="mt-9 flex max-w-2xl flex-col gap-3 rounded-[1.6rem] border border-black/10 bg-white p-3 shadow-[0_22px_70px_rgba(21,24,39,0.12)] sm:flex-row">
+                <label className="flex min-w-0 flex-1 items-center gap-3 px-2">
+                  <Search className="h-5 w-5 shrink-0 text-[#f15a2b]" />
+                  <select name="category" defaultValue={category} className="h-12 min-w-0 flex-1 bg-transparent text-sm font-bold text-[#151a27] outline-none">
+                    <option value="all">All categories</option>
+                    {CATEGORY_OPTIONS.map((item) => <option key={item.slug} value={item.slug}>{item.name}</option>)}
+                  </select>
+                </label>
+                <button className="rounded-2xl bg-[#151a27] px-7 py-3 text-sm font-black text-white transition hover:bg-[#f15a2b]">Filter</button>
+              </form>
+            </div>
+            <div className="rounded-[2rem] border border-black/10 bg-white p-6 shadow-[0_30px_80px_rgba(21,24,39,0.12)]">
+              <p className="text-xs font-black uppercase tracking-[0.24em] text-[#f15a2b]">Current shelf</p>
+              <div className="mt-5 grid gap-4">
+                <div className="rounded-2xl bg-[#151a27] p-5 text-white">
+                  <p className="text-4xl font-black">{posts.length}</p>
+                  <p className="mt-1 text-sm font-semibold text-white/65">{posts.length === 1 ? 'article' : 'articles'} on this page</p>
+                </div>
+                <div className="rounded-2xl bg-[#f7f7f7] p-5">
+                  <p className="text-xs font-black uppercase tracking-[0.18em] text-[#656c79]">Category</p>
+                  <p className="mt-2 text-2xl font-black">{categoryLabel}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <section className="mx-auto max-w-[var(--editable-container)] px-6 py-14 lg:px-8 lg:py-20">
+          {posts.length ? (
+            <>
+              {featured ? (
+                <div className="grid gap-6 lg:grid-cols-[1.25fr_0.75fr]">
+                  <Link href={`${basePath}/${featured.slug}`} className="group overflow-hidden rounded-[2rem] border border-black/10 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-[0_30px_80px_rgba(21,24,39,0.12)]">
+                    <div className="aspect-[16/9] overflow-hidden bg-[#ece9e3]">
+                      <img src={getImage(featured)} alt="" className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
+                    </div>
+                    <div className="p-7 sm:p-9">
+                      <p className="text-xs font-black uppercase tracking-[0.2em] text-[#f15a2b]">{getCategory(featured, 'Featured article')}</p>
+                      <h2 className="mt-4 max-w-3xl text-4xl font-black leading-[1.02] tracking-[-0.05em] sm:text-5xl">{featured.title}</h2>
+                      <p className="mt-4 line-clamp-2 max-w-2xl text-base leading-7 text-[#656c79]">{getSummary(featured)}</p>
+                      <span className="mt-6 inline-flex items-center gap-2 text-sm font-black text-[#151a27]">Read feature <ArrowRight className="h-4 w-4" /></span>
+                    </div>
+                  </Link>
+                  <div className="grid gap-4">
+                    {side.map((post, index) => (
+                      <Link key={post.id || post.slug} href={`${basePath}/${post.slug}`} className="group grid grid-cols-[104px_1fr] gap-4 rounded-[1.4rem] border border-black/10 bg-white p-3 transition hover:-translate-y-1 hover:shadow-xl">
+                        <img src={getImage(post)} alt="" className="h-28 w-full rounded-2xl object-cover" />
+                        <div className="min-w-0 py-2">
+                          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#f15a2b]">No. {String(index + 2).padStart(2, '0')}</p>
+                          <h3 className="mt-2 line-clamp-3 text-lg font-black leading-tight">{post.title}</h3>
+                          <p className="mt-2 line-clamp-1 text-sm text-[#656c79]">{getCategory(post, 'Article')}</p>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {rest.length ? (
+                <div className="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                  {rest.map((post, index) => <ArticleArchiveCard key={post.id || post.slug} post={post} href={`${basePath}/${post.slug}`} index={index + 4} />)}
+                </div>
+              ) : null}
+            </>
+          ) : (
+            <div className="mx-auto max-w-xl rounded-[2rem] border border-dashed border-black/15 bg-white px-8 py-16 text-center">
+              <Search className="mx-auto h-8 w-8 text-[#f15a2b]" />
+              <h2 className="mt-5 text-3xl font-black tracking-[-0.04em]">No articles found</h2>
+              <p className="mt-3 text-sm leading-6 text-[#656c79]">Try another category or return when more articles are published.</p>
+            </div>
+          )}
+
+          {posts.length ? (
+            <nav className="mt-16 flex items-center justify-center gap-3 text-sm">
+              {pagination.hasPrevPage ? <Link href={pageHref(basePath, category, page - 1)} className="rounded-full border border-black/10 bg-white px-5 py-2.5 font-bold transition hover:border-[#f15a2b]">Previous</Link> : null}
+              <span className="rounded-full border border-black/10 bg-white px-5 py-2.5 font-bold text-[#656c79]">Page {page} of {pagination.totalPages || 1}</span>
+              {pagination.hasNextPage ? <Link href={pageHref(basePath, category, page + 1)} className="rounded-full border border-black/10 bg-white px-5 py-2.5 font-bold transition hover:border-[#f15a2b]">Next</Link> : null}
+            </nav>
+          ) : null}
+        </section>
+      </main>
+    </EditableSiteShell>
+  )
+}
+
+function ListingArchiveView({ posts, pagination, category, categoryLabel, basePath }: { posts: SitePost[]; pagination: SiteFeedPagination; category: string; categoryLabel: string; basePath: string }) {
+  const page = pagination.page || 1
+  const featured = posts[0]
+  const rest = posts.slice(1)
+
+  return (
+    <EditableSiteShell>
+      <main style={taskThemeStyle('listing')} className="min-h-screen bg-[#f7f4ef] text-[#151a27]">
+        <header className="relative overflow-hidden bg-[#151a27] text-white">
+          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(241,90,43,0.18)_1px,transparent_1px),linear-gradient(0deg,rgba(241,90,43,0.14)_1px,transparent_1px)] bg-[length:44px_44px]" />
+          <div className="pointer-events-none absolute -right-24 top-16 h-96 w-96 rounded-full bg-[#f15a2b]/30 blur-3xl" />
+          <div className="relative mx-auto grid max-w-[var(--editable-container)] gap-10 px-6 py-16 lg:grid-cols-[1fr_420px] lg:px-8 lg:py-20">
+            <div>
+              <p className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-[11px] font-black uppercase tracking-[0.24em] text-[#ffb08e]">
+                <BriefcaseBusiness className="h-4 w-4" /> Business directory
+              </p>
+              <h1 className="mt-7 max-w-4xl text-balance text-[clamp(3rem,7vw,6.4rem)] font-black leading-[0.9] tracking-[-0.08em]">
+                Find trusted businesses and useful services.
+              </h1>
+              <p className="mt-7 max-w-2xl text-lg font-medium leading-8 text-white/70">
+                Explore company profiles, service listings, contact details, and helpful descriptions from the Hoorness community.
+              </p>
+              <form action={basePath} className="mt-9 flex max-w-2xl flex-col gap-3 rounded-[1.6rem] border border-white/10 bg-white p-3 text-[#151a27] shadow-[0_28px_80px_rgba(0,0,0,0.25)] sm:flex-row">
+                <label className="flex min-w-0 flex-1 items-center gap-3 px-2">
+                  <Search className="h-5 w-5 shrink-0 text-[#f15a2b]" />
+                  <select name="category" defaultValue={category} className="h-12 min-w-0 flex-1 bg-transparent text-sm font-bold outline-none">
+                    <option value="all">All categories</option>
+                    {CATEGORY_OPTIONS.map((item) => <option key={item.slug} value={item.slug}>{item.name}</option>)}
+                  </select>
+                </label>
+                <button className="rounded-2xl bg-[#f15a2b] px-7 py-3 text-sm font-black text-white transition hover:bg-[#151a27]">Search</button>
+              </form>
+            </div>
+            <div className="rounded-[2rem] border border-white/10 bg-white/10 p-6 backdrop-blur">
+              <p className="text-xs font-black uppercase tracking-[0.24em] text-[#ffb08e]">Directory snapshot</p>
+              <div className="mt-6 grid grid-cols-2 gap-4">
+                <div className="rounded-2xl bg-white p-5 text-[#151a27]">
+                  <p className="text-4xl font-black">{posts.length}</p>
+                  <p className="mt-1 text-sm font-semibold text-[#656c79]">visible listings</p>
+                </div>
+                <div className="rounded-2xl bg-[#f15a2b] p-5 text-white">
+                  <p className="text-4xl font-black">{page}</p>
+                  <p className="mt-1 text-sm font-semibold text-white/75">current page</p>
+                </div>
+              </div>
+              <div className="mt-4 rounded-2xl border border-white/10 bg-[#111827]/60 p-5">
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-white/50">Category</p>
+                <p className="mt-2 text-2xl font-black">{categoryLabel}</p>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <section className="mx-auto max-w-[var(--editable-container)] px-6 py-14 lg:px-8 lg:py-20">
+          {posts.length ? (
+            <>
+              {featured ? (
+                <Link href={`${basePath}/${featured.slug}`} className="group grid overflow-hidden rounded-[2rem] border border-black/10 bg-white shadow-[0_18px_60px_rgba(21,24,39,0.08)] transition hover:-translate-y-1 hover:shadow-[0_34px_90px_rgba(21,24,39,0.14)] lg:grid-cols-[360px_1fr]">
+                  <div className="flex min-h-72 items-center justify-center bg-[#151a27] p-8">
+                    {getImages(featured)[0] ? <img src={getImages(featured)[0]} alt="" className="h-full max-h-72 w-full rounded-[1.4rem] object-cover" /> : <BriefcaseBusiness className="h-20 w-20 text-white/40" />}
+                  </div>
+                  <div className="p-7 sm:p-10">
+                    <p className="text-xs font-black uppercase tracking-[0.2em] text-[#f15a2b]">Featured listing</p>
+                    <h2 className="mt-4 max-w-3xl text-4xl font-black leading-[1.02] tracking-[-0.05em] sm:text-5xl">{featured.title}</h2>
+                    <RatingLine post={featured} />
+                    <p className="mt-4 line-clamp-3 max-w-2xl text-base leading-7 text-[#656c79]">{getSummary(featured)}</p>
+                    <div className="mt-6 flex flex-wrap gap-3 text-sm font-bold text-[#656c79]">
+                      {getField(featured, ['location', 'address', 'city']) ? <span className="inline-flex items-center gap-2 rounded-full bg-[#f7f4ef] px-4 py-2"><MapPin className="h-4 w-4 text-[#f15a2b]" /> {getField(featured, ['location', 'address', 'city'])}</span> : null}
+                      {getField(featured, ['website', 'url']) ? <span className="inline-flex items-center gap-2 rounded-full bg-[#f7f4ef] px-4 py-2"><Globe className="h-4 w-4 text-[#f15a2b]" /> Website</span> : null}
+                    </div>
+                    <span className="mt-7 inline-flex items-center gap-2 text-sm font-black text-[#151a27]">View profile <ArrowRight className="h-4 w-4" /></span>
+                  </div>
+                </Link>
+              ) : null}
+
+              {rest.length ? (
+                <div className="mt-10 grid gap-5 xl:grid-cols-2">
+                  {rest.map((post) => <ListingArchiveCard key={post.id || post.slug} post={post} href={`${basePath}/${post.slug}`} />)}
+                </div>
+              ) : null}
+            </>
+          ) : (
+            <div className="mx-auto max-w-xl rounded-[2rem] border border-dashed border-black/15 bg-white px-8 py-16 text-center">
+              <Search className="mx-auto h-8 w-8 text-[#f15a2b]" />
+              <h2 className="mt-5 text-3xl font-black tracking-[-0.04em]">No listings found</h2>
+              <p className="mt-3 text-sm leading-6 text-[#656c79]">Try another category or return when more listings are published.</p>
+            </div>
+          )}
+
+          {posts.length ? (
+            <nav className="mt-16 flex items-center justify-center gap-3 text-sm">
+              {pagination.hasPrevPage ? <Link href={pageHref(basePath, category, page - 1)} className="rounded-full border border-black/10 bg-white px-5 py-2.5 font-bold transition hover:border-[#f15a2b]">Previous</Link> : null}
+              <span className="rounded-full border border-black/10 bg-white px-5 py-2.5 font-bold text-[#656c79]">Page {page} of {pagination.totalPages || 1}</span>
+              {pagination.hasNextPage ? <Link href={pageHref(basePath, category, page + 1)} className="rounded-full border border-black/10 bg-white px-5 py-2.5 font-bold transition hover:border-[#f15a2b]">Next</Link> : null}
+            </nav>
+          ) : null}
+        </section>
+      </main>
+    </EditableSiteShell>
+  )
+}
+
 function CardArrow({ label }: { label: string }) {
   return (
     <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-[var(--tk-accent)]">
@@ -247,21 +465,22 @@ function ListingArchiveCard({ post, href }: { post: SitePost; href: string }) {
   const phone = getField(post, ['phone', 'telephone', 'mobile'])
   const website = getField(post, ['website', 'url'])
   return (
-    <Link href={href} className={`${cardBase} flex items-center gap-5 p-5 sm:p-6`}>
-      <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-[1rem] border border-[var(--tk-line)] bg-[var(--tk-raised)]">
-        {logo ? <img src={logo} alt="" className="h-full w-full object-cover" /> : <BriefcaseBusiness className="h-9 w-9 text-[var(--tk-muted)]" />}
+    <Link href={href} className="group grid gap-5 rounded-[1.6rem] border border-black/10 bg-white p-5 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_70px_rgba(21,24,39,0.12)] sm:grid-cols-[132px_1fr]">
+      <div className="flex h-36 w-full items-center justify-center overflow-hidden rounded-[1.2rem] bg-[#151a27] sm:h-full">
+        {logo ? <img src={logo} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" /> : <BriefcaseBusiness className="h-12 w-12 text-white/45" />}
       </div>
       <div className="min-w-0 flex-1">
-        <h2 className="editable-display truncate text-xl font-semibold tracking-[-0.02em]">{post.title}</h2>
+        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#f15a2b]">{getCategory(post, 'Business')}</p>
+        <h2 className="mt-2 line-clamp-2 text-2xl font-black leading-tight tracking-[-0.04em] text-[#151a27]">{post.title}</h2>
         <RatingLine post={post} />
-        <p className="mt-2 line-clamp-1 text-sm leading-6 text-[var(--tk-muted)]">{getSummary(post)}</p>
-        <div className="mt-3 flex flex-wrap gap-3 text-xs font-medium text-[var(--tk-muted)]">
-          {location ? <span className="inline-flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5 text-[var(--tk-accent)]" /> {location}</span> : null}
-          {phone ? <span className="inline-flex items-center gap-1.5"><Phone className="h-3.5 w-3.5 text-[var(--tk-accent)]" /> {phone}</span> : null}
-          {website ? <span className="inline-flex items-center gap-1.5"><Globe className="h-3.5 w-3.5 text-[var(--tk-accent)]" /> Website</span> : null}
+        <p className="mt-3 line-clamp-2 text-sm leading-6 text-[#656c79]">{getSummary(post)}</p>
+        <div className="mt-5 flex flex-wrap gap-2 text-xs font-bold text-[#656c79]">
+          {location ? <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f7f4ef] px-3 py-1.5"><MapPin className="h-3.5 w-3.5 text-[#f15a2b]" /> {location}</span> : null}
+          {phone ? <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f7f4ef] px-3 py-1.5"><Phone className="h-3.5 w-3.5 text-[#f15a2b]" /> {phone}</span> : null}
+          {website ? <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f7f4ef] px-3 py-1.5"><Globe className="h-3.5 w-3.5 text-[#f15a2b]" /> Website</span> : null}
         </div>
+        <span className="mt-5 inline-flex items-center gap-2 text-sm font-black text-[#151a27]">Open listing <ArrowUpRight className="h-4 w-4 text-[#f15a2b]" /></span>
       </div>
-      <ArrowUpRight className="h-5 w-5 shrink-0 text-[var(--tk-muted)] transition group-hover:text-[var(--tk-accent)]" />
     </Link>
   )
 }
